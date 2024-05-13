@@ -99,6 +99,7 @@ protected:
   image_transport::Publisher _imDebugPub;
   cv_bridge::CvImage _cvImg;
 
+
   cv::Size _imgProcessingSize, _originalImageSize;
   double _minRelEyeDist, _maxRelEyeDist;
   cv::Size _minFaceSize, _maxFaceSize;
@@ -141,28 +142,34 @@ FaceDetector::~FaceDetector()
 
 void FaceDetector::publishDetections(const std::vector<cv::Rect>& faces)
 {
+
+  bool faceDetected = !faces.empty();
+
   pal_detection_msgs::FaceDetections msg;
   pal_detection_msgs::FaceDetection  detection;
 
   msg.header.stamp = _imgTimeStamp;
   msg.header.frame_id = _cameraFrameId;
 
-  BOOST_FOREACH(const cv::Rect& face, faces)
-  {
-    //publish the detection according to the original image size
-    detection.x           = static_cast<int>(face.x      * _originalImageSize.width/_imgProcessingSize.width);
-    detection.y           = static_cast<int>(face.y      * _originalImageSize.height/_imgProcessingSize.height);
-    detection.width       = static_cast<int>(face.width  * _originalImageSize.width/_imgProcessingSize.width);
-    detection.height      = static_cast<int>(face.height * _originalImageSize.height/_imgProcessingSize.height);
-    detection.eyesLocated = false;
-    detection.leftEyeX    = 0;
-    detection.leftEyeY    = 0;
-    detection.rightEyeX   = 0;
-    detection.rightEyeY   = 0;
 
-    detection.name        = "";
-    detection.confidence  = 0;
-    msg.faces.push_back(detection);
+  if(faceDetected){
+    BOOST_FOREACH(const cv::Rect& face, faces)
+    {
+      //publish the detection according to the original image size
+      detection.x           = static_cast<int>(face.x      * _originalImageSize.width/_imgProcessingSize.width);
+      detection.y           = static_cast<int>(face.y      * _originalImageSize.height/_imgProcessingSize.height);
+      detection.width       = static_cast<int>(face.width  * _originalImageSize.width/_imgProcessingSize.width);
+      detection.height      = static_cast<int>(face.height * _originalImageSize.height/_imgProcessingSize.height);
+      detection.eyesLocated = false;
+      detection.leftEyeX    = 0;
+      detection.leftEyeY    = 0;
+      detection.rightEyeX   = 0;
+      detection.rightEyeY   = 0;
+
+      detection.name        = "";
+      detection.confidence  = 0;
+      msg.faces.push_back(detection);
+    }
   }
 
   _pub.publish(msg);
